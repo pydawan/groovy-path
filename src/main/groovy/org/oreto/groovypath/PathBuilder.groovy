@@ -56,7 +56,7 @@ class PathBuilder {
     }
 
     PathBuilder(Collection<String> names) {
-        this.names.addAll(names)
+        this.addAll(names)
     }
 
     PathBuilder(File file) {
