@@ -2,30 +2,33 @@ package org.oreto.groovypath
 
 class PathBuilder {
 
-    /**
-     * Takes a collection of names and returns the computed relative path
-     * Does not modify the original collection
-     * @param names directory/file names
-     * @param separator name-separator character
-     * @return The relative path
-     */
-    static String path(Collection<String> names, String separator = File.separator) {
-        names.join(separator)
-    }
+    static List<String> DEFAULT_SRC_SET = ['src', 'main', 'groovy']
+    static List<String> DEFAULT_TEST_SRC_SET = ['src', 'test', 'groovy']
+    static String DEFAULT_SRC_EXT = 'groovy'
 
     /**
-     * Takes a collection of names and returns the computed FULL path
-     * Does not modify the original collection
+     * Takes a collection of names and returns the computed path
      * @param names directory/file names
+     * @param separator name-separator character
      * @param preface The root of the drive to begin the full path i.e. /c/ or C:\
-     * @param separator name-separator character
-     * @return The full path
+     * @return The path
      */
-    static String fullPath(Collection<String> names, String preface = File.separator, String separator = File.separator) {
-        preface + path(names, separator)
+    static String path(Collection<String> names, String separator = File.separator, String preface = '') {
+        def full = preface ? [preface] : []
+        full.addAll(names)
+        full.collect{ it.endsWith(separator) ? it.substring(0, it.length() - 1) : it }.join(separator)
     }
 
-    static PathBuilder newPathBuilder(String separator = File.separator, String preface = File.separator) {
+    static String workingDirectory() { new File(".").canonicalPath }
+
+    static String classToSrcPath(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String separator = File.separator) {
+        def names = srcSet.collect()
+        if(aClass.package) names.addAll(aClass.package.name.split('.'))
+        names.add("${aClass.name}.$DEFAULT_SRC_EXT")
+        path(names, separator)
+    }
+
+    static PathBuilder createPathBuilder(String separator = File.separator, String preface = '') {
         PathBuilder pathBuilder = new PathBuilder()
         pathBuilder.separator = separator
         pathBuilder.preface = preface
@@ -33,34 +36,30 @@ class PathBuilder {
     }
 
     protected synchronized List<String> names = []
-    String separator
-    String preface
+    String separator = File.separator
+    String preface = ''
+    List<String> sourceSet = DEFAULT_SRC_SET
 
-    PathBuilder() {
-        this.separator = File.separator
-        this.preface = File.separator
-    }
+    PathBuilder() {}
 
     PathBuilder(String path) {
-        this()
         this.names = path.split(getSeperatorRegex())
     }
 
     PathBuilder(Collection<String> names) {
-        this()
         this.names.addAll(names)
     }
 
     PathBuilder(File file) {
-        this()
-        String path = file.isDirectory() ? file.path : file.getParentFile().path
+        String path = file.canonicalPath
         this.names = path.split(getSeperatorRegex())
     }
 
     PathBuilder(PathBuilder pathBuilder) {
         this.separator = pathBuilder.separator
         this.preface = pathBuilder.preface
-        this.names = pathBuilder.names
+        this.names.addAll(pathBuilder.names)
+        this.sourceSet = pathBuilder.sourceSet
     }
 
     @Override
@@ -69,13 +68,13 @@ class PathBuilder {
     }
 
     PathBuilder add(Collection<String> names, String... name) {
-        names.addAll(names)
-        names.addAll(name)
+        this.names.addAll(names)
+        this.names.addAll(name)
         this
     }
 
     PathBuilder subPath(int start, int end) {
-        names = names.subList(0, end)
+        names = names.subList(start, end)
         this
     }
 
@@ -88,15 +87,14 @@ class PathBuilder {
     int size() { names.size() }
     boolean exists() { toFile().exists() }
 
-    @Override String toString() { path(names, separator) }
-    String toPath() { toString() }
-    String toFullPath() { fullPath(names, preface, separator) }
+    @Override String toString() { path(names, separator, preface)}
+
     File toFile() {
-        new File(toFullPath())
+        new File(toString())
     }
 
     String toUrl() {
-        '/' + toPath().replaceAll(getSeperatorRegex(), '/')
+        '/' + toString().replaceAll(getSeperatorRegex(), '/')
     }
 
     protected getSeperatorRegex() {
