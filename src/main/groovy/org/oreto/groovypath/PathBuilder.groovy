@@ -10,7 +10,7 @@ class PathBuilder {
      * Takes a collection of names and returns the computed path
      * @param names directory/file names
      * @param separator name-separator character
-     * @param preface The root of the drive to begin the full path i.e. /c/ or C:\
+     * @param preface path to preface the names with
      * @return The path
      */
     static String path(Collection<String> names, String separator = File.separator, String preface = '') {
@@ -21,10 +21,10 @@ class PathBuilder {
 
     static String workingDirectory() { new File(".").canonicalPath }
 
-    static String classToSrcPath(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String separator = File.separator) {
+    static String classToSrcPath(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String ext = DEFAULT_SRC_EXT, String separator = File.separator) {
         def names = srcSet.collect()
         if(aClass.package) names.addAll(aClass.package.name.split('.'))
-        names.add("${aClass.name}.$DEFAULT_SRC_EXT")
+        names.add("${aClass.name}.$ext")
         path(names, separator)
     }
 
@@ -39,6 +39,7 @@ class PathBuilder {
     String separator = File.separator
     String preface = ''
     List<String> sourceSet = DEFAULT_SRC_SET
+    List<String> testSourceSet = DEFAULT_TEST_SRC_SET
 
     PathBuilder() {}
 
@@ -51,8 +52,7 @@ class PathBuilder {
     }
 
     PathBuilder(File file) {
-        String path = file.canonicalPath
-        this.names = path.split(getSeperatorRegex())
+        this(file.canonicalPath)
     }
 
     PathBuilder(PathBuilder pathBuilder) {
@@ -60,6 +60,7 @@ class PathBuilder {
         this.preface = pathBuilder.preface
         this.names.addAll(pathBuilder.names)
         this.sourceSet = pathBuilder.sourceSet
+        this.testSourceSet = pathBuilder.testSourceSet
     }
 
     @Override
