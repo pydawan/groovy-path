@@ -2,9 +2,9 @@ package org.oreto.groovypath
 
 class PathBuilder {
 
-    static List<String> DEFAULT_SRC_SET = ['src', 'main', 'groovy']
-    static List<String> DEFAULT_TEST_SRC_SET = ['src', 'test', 'groovy']
     static String DEFAULT_SRC_EXT = 'groovy'
+    static List<String> DEFAULT_SRC_SET = ['src', 'main', DEFAULT_SRC_EXT]
+    static List<String> DEFAULT_TEST_SRC_SET = ['src', 'test', DEFAULT_SRC_EXT]
 
     /**
      * Takes a collection of names and returns the computed path
@@ -14,9 +14,9 @@ class PathBuilder {
      * @return The path
      */
     static String path(Collection<String> names, String separator = File.separator, String preface = '') {
-        def full = preface ? [preface] : []
-        full.addAll(names)
-        full.collect{ it.endsWith(separator) ? it.substring(0, it.length() - 1) : it }.join(separator)
+        def full = []
+        names.each { full.addAll(pathToNames(it, separator)) }
+        preface + full.join(separator)
     }
 
     static String workingDirectory() { new File(".").canonicalPath }
@@ -35,6 +35,14 @@ class PathBuilder {
         pathBuilder
     }
 
+    static List<String> pathToNames(String path, String separator = File.separator) {
+        path.split(separatorRegex(separator))
+    }
+
+    static separatorRegex = { separator ->
+        separator == '\\' ? '\\\\' : separator
+    }
+
     protected synchronized List<String> names = []
     String separator = File.separator
     String preface = ''
@@ -44,7 +52,7 @@ class PathBuilder {
     PathBuilder() {}
 
     PathBuilder(String path) {
-        this.names = path.split(getSeperatorRegex())
+        this.names = pathToNames(path, separator)
     }
 
     PathBuilder(Collection<String> names) {
@@ -68,10 +76,17 @@ class PathBuilder {
         new PathBuilder(this)
     }
 
-    PathBuilder add(Collection<String> names, String... name) {
-        this.names.addAll(names)
-        this.names.addAll(name)
+    PathBuilder addAll(Collection<String> names, String... name) {
+        List<String> collection = names.collect()
+        collection.addAll(name)
+        def all = []
+        collection.each{ all.addAll(pathToNames(it, separator)) }
+        this.names.addAll(all)
         this
+    }
+
+    PathBuilder add(String... names) {
+        addAll(names.toList())
     }
 
     PathBuilder subPath(int start, int end) {
@@ -95,10 +110,10 @@ class PathBuilder {
     }
 
     String toUrl() {
-        '/' + toString().replaceAll(getSeperatorRegex(), '/')
+        '/' + toString().replaceAll(getSeparatorRegex(), '/')
     }
 
-    protected getSeperatorRegex() {
-        separator == '\\' ? '\\\\' : separator
+    protected getSeparatorRegex() {
+        separatorRegex(separator)
     }
 }

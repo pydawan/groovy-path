@@ -22,7 +22,7 @@ class PathBuilderTest extends Specification {
         def pathBuilder = PathBuilder.createPathBuilder('\\', 'C:\\')
 
         when:
-        pathBuilder.add(pathList)
+        pathBuilder.addAll(pathList)
 
         then:
         pathBuilder.toString() == "C:\\a\\b\\c.exe"
@@ -36,7 +36,7 @@ class PathBuilderTest extends Specification {
         def size = pathBuilder1.size()
 
         when:
-        pathBuilder2.add(['test', 'ing'])
+        pathBuilder2.addAll(['test', 'ing'])
         pathBuilder2.subPath(size)
 
         then:
@@ -50,7 +50,7 @@ class PathBuilderTest extends Specification {
         def pathBuilder2 = new PathBuilder(pathBuilder1)
 
         when:
-        pathBuilder1.add(['probably', 'does not', 'exist'])
+        pathBuilder1.addAll(['probably', 'does not', 'exist'])
 
         then:
         !pathBuilder1.exists() && pathBuilder2.exists()
