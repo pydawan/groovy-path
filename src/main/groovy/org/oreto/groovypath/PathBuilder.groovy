@@ -21,11 +21,14 @@ class PathBuilder implements Iterable<String> {
 
     static String workingDirectory() { new File(".").canonicalPath }
 
-    static String classToSrcPath(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String ext = DEFAULT_SRC_EXT, String separator = File.separator) {
+    static String classToSrcDir(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String ext = DEFAULT_SRC_EXT, String separator = File.separator) {
         def names = srcSet.collect()
-        if(aClass.package) names.addAll(aClass.package.name.split('.'))
-        names.add("${aClass.name}.$ext")
+        if(aClass.package) names.addAll(aClass.package.name.split('\\.'))
         path(names, separator)
+    }
+
+    static String classToSrcPath(Class aClass, List<String> srcSet = DEFAULT_SRC_SET, String ext = DEFAULT_SRC_EXT, String separator = File.separator) {
+        path([classToSrcDir(aClass, srcSet, ext, separator), "${aClass.simpleName}.$ext"], separator)
     }
 
     static PathBuilder createPathBuilder(String separator = File.separator, String preface = '') {
@@ -135,6 +138,10 @@ class PathBuilder implements Iterable<String> {
 
     String toUrl() {
         '/' + toString().replaceAll(getSeparatorRegex(), '/')
+    }
+
+    List<String> toList() {
+        names.collect { it }
     }
 
     protected getSeparatorRegex() {

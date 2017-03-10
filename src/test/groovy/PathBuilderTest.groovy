@@ -60,6 +60,7 @@ class PathBuilderTest extends Specification {
         setup:
         def srcPath = PathBuilder.classToSrcPath(PathBuilderTest.class, PathBuilder.DEFAULT_TEST_SRC_SET)
         def pathBuilder1 = new PathBuilder(srcPath)
+        def pathBuilder2 = new PathBuilder(PathBuilder.classToSrcPath(PathBuilder.class))
 
         when:
         def file1 = pathBuilder1.toFile()
@@ -69,9 +70,11 @@ class PathBuilderTest extends Specification {
         file3.eachFileRecurse (FileType.FILES) { File file ->
             count++
         }
+        def srcList = pathBuilder2.toList()
 
         then:
         file1.exists() && !file1.isDirectory() && file2.isDirectory() && file3.exists() && count >= 2
+        srcList == ['src', 'main', 'groovy', 'org', 'oreto', 'groovypath', 'PathBuilder.groovy']
     }
 
     def "PathBuilder iterate"() {
@@ -82,7 +85,7 @@ class PathBuilderTest extends Specification {
         def list = pathBuilder1.collect{ it }
 
         then:
-        list == ['src', 'test', 'groovy']
+        list == pathBuilder1.toList()
     }
 
     def "PathBuilder create"() {
