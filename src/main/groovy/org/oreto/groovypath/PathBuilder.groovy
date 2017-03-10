@@ -1,6 +1,6 @@
 package org.oreto.groovypath
 
-class PathBuilder {
+class PathBuilder implements Iterable<String> {
 
     static String DEFAULT_SRC_EXT = 'groovy'
     static List<String> DEFAULT_SRC_SET = ['src', 'main', DEFAULT_SRC_EXT]
@@ -98,7 +98,36 @@ class PathBuilder {
         subPath(start, names.size())
     }
 
-    PathBuilder clear() { names.clear() }
+    PathBuilder clear() {
+        names.clear()
+        this
+    }
+
+    PathBuilder create() {
+        def file = toFile()
+        file.parentFile.mkdirs()
+        file.createNewFile()
+        this
+    }
+
+    PathBuilder createDir() {
+        toFile().mkdirs()
+        this
+    }
+
+    PathBuilder delete() {
+        def file = toFile()
+        if(file.isDirectory()) file.deleteDir()
+        else file.delete()
+        this
+    }
+
+    PathBuilder deleteRoot() {
+        def file = new File(names[0])
+        if(file.isDirectory()) file.deleteDir()
+        else file.delete()
+        this
+    }
 
     int size() { names.size() }
     boolean exists() { toFile().exists() }
@@ -115,5 +144,31 @@ class PathBuilder {
 
     protected getSeparatorRegex() {
         separatorRegex(separator)
+    }
+
+    @Override
+    Iterator<String> iterator() {
+        new PathBuilderIterator(names)
+    }
+
+    protected static final class PathBuilderIterator implements Iterator<String> {
+
+        protected int current = 0
+        List<String> names
+
+        PathBuilderIterator(List<String> names) {
+            this.names = names
+        }
+
+        @Override
+        boolean hasNext() {
+            current < names.size()
+        }
+
+        @Override
+        String next() {
+            if(!hasNext()) throw new NoSuchElementException()
+            names.get(current++)
+        }
     }
 }

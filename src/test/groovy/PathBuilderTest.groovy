@@ -73,4 +73,28 @@ class PathBuilderTest extends Specification {
         then:
         file1.exists() && !file1.isDirectory() && file2.isDirectory() && file3.exists() && count >= 2
     }
+
+    def "PathBuilder iterate"() {
+        setup:
+        def pathBuilder1 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+
+        when:
+        def list = pathBuilder1.collect{ it }
+
+        then:
+        list == ['src', 'test', 'groovy']
+    }
+
+    def "PathBuilder create"() {
+        setup:
+        def pathBuilder1 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+        def pathBuilder2 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+
+        when:
+        pathBuilder1.add('sub1', 'sub2').createDir()
+        pathBuilder2.add('sub1', 'sub2', 'test.txt').create()
+
+        then:
+        pathBuilder1.exists() && pathBuilder2.exists()
+    }
 }
