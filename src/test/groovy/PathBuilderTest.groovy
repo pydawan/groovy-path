@@ -95,6 +95,21 @@ class PathBuilderTest extends Specification {
         pathBuilder2.add('sub1', 'sub2', 'test.txt').create()
 
         then:
-        pathBuilder1.exists() && pathBuilder2.exists()
+        pathBuilder1.toFile().isDirectory() && pathBuilder2.toFile().isFile()
+    }
+
+    def "PathBuilder delete"() {
+        setup:
+        def pathBuilder1 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+        def pathBuilder2 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+        def pathBuilder3 = new PathBuilder(PathBuilder.DEFAULT_TEST_SRC_SET)
+
+        when:
+        pathBuilder1.add('sub1', 'sub2').delete()
+        pathBuilder2.add('sub1', 'sub2', 'test.txt').delete()
+        pathBuilder3.add('sub1').delete()
+
+        then:
+        !pathBuilder1.exists() && !pathBuilder2.exists() && !pathBuilder3.exists()
     }
 }

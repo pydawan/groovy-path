@@ -117,15 +117,10 @@ class PathBuilder implements Iterable<String> {
 
     PathBuilder delete() {
         def file = toFile()
-        if(file.isDirectory()) file.deleteDir()
-        else file.delete()
-        this
-    }
-
-    PathBuilder deleteRoot() {
-        def file = new File(names[0])
-        if(file.isDirectory()) file.deleteDir()
-        else file.delete()
+        if(file.exists()) {
+            if (file.isDirectory()) file.deleteDir()
+            else file.delete()
+        }
         this
     }
 
