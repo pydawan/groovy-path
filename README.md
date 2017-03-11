@@ -10,14 +10,13 @@ repositories {
 ```
 - add dependency
 ```
-compile 'org.oreto:groovy-path:1.0-SNAPSHOT'
+compile 'org.oreto:groovy-path:+'
 ```
 
 ### Development
 
 ##### Package
 ```
-gradle jar
 gradle --no-daemon jar
 ```
 
